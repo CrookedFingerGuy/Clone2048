@@ -46,6 +46,7 @@ namespace Clone2048
         UserInputProcessor userInputProcessor;
         Stopwatch gameInputTimer;
         TextFormat pieceTextFormat;
+        TextFormat pieceTextFormat4Digits;
         RawRectangleF TestTextArea;
         Bitmap Background;
         SolidColorBrush boardColor;
@@ -61,10 +62,12 @@ namespace Clone2048
         GameStateData gsd;
         BoardSpot bs;
         bool moveSuccess = true;
+        bool undid = false;
         SolidColorBrush activePieceColor;
         SolidColorBrush scoreColor;
         TextFormat scoreTextFormat;
-
+        StartMenu startMenu;
+        GameOverScreen gameOverScreen;
 
         public RForm(string text) : base(text)
         {
@@ -96,11 +99,9 @@ namespace Clone2048
             keyboard.Properties.BufferSize = 128;
             keyboard.Acquire();
             userInputProcessor = new UserInputProcessor();
-            pieceTextFormat = new SharpDX.DirectWrite.TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
             TestTextArea = new SharpDX.Mathematics.Interop.RawRectangleF(10, 10, 400, 400);
             gameInputTimer = new Stopwatch();
             gameInputTimer.Start();
-            //Background = LoadBackground(d2dRenderTarget, "");
 
             boardColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(1f, 0f, 0f, 1f));
             boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f, 0f, 0.2f, 1f));
@@ -117,85 +118,134 @@ namespace Clone2048
             if (bs.Value == 4)
                 gsd.score += 4;
             moveSuccess = false;
+            pieceTextFormat = new SharpDX.DirectWrite.TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
             pieceTextFormat.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
             pieceTextFormat.ParagraphAlignment = ParagraphAlignment.Center;
+            pieceTextFormat4Digits = new SharpDX.DirectWrite.TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 24);
+            pieceTextFormat4Digits.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
+            pieceTextFormat4Digits.ParagraphAlignment = ParagraphAlignment.Center;
             scoreColor = new SolidColorBrush(d2dRenderTarget,new RawColor4(1f, 1f, 1f, 1f));
             scoreTextFormat = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
+
+            TextFormat startMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
+            startMenu = new StartMenu(d2dRenderTarget,startMenuText,screenWidth,screenHeight,gsd);
+            startMenu.isVisible = true;
+
+            TextFormat gameOverMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 72);
+            gameOverScreen =new GameOverScreen(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd);
+
         }
 
         public void rLoop()
         {
             d2dRenderTarget.BeginDraw();
             d2dRenderTarget.Clear(Color.Black);
-            //d2dRenderTarget.DrawBitmap(Background, 1.0f, BitmapInterpolationMode.Linear);
-            //d2dRenderTarget.DrawText("Test", TestTextFormat, TestTextArea, solidColorBrush);
-            //userInputProcessor.DisplayGamePadState(d2dRenderTarget, solidColorBrush);
 
-
-
-            DrawGameBoard(d2dRenderTarget);
-            d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
+            if (gameOverScreen.isVisible)
+                gameOverScreen.ShowGameOverScreen(d2dRenderTarget);
+            else if (startMenu.isVisible)
+                startMenu.ShowStartMenu(d2dRenderTarget);
+            else
+            {
+                DrawGameBoard(d2dRenderTarget);
+                d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
+            }
 
             if (gameInputTimer.ElapsedMilliseconds >= 25)
             {
                 userInputProcessor.oldPacketNumber = gamePadState.PacketNumber;
                 gamePadState = userInputProcessor.GetGamePadState();
                 gameInputTimer.Restart();
-
-                if (gamePadState.PacketNumber != userInputProcessor.oldPacketNumber)
+                if (gameOverScreen.isVisible)
                 {
-                    if (moveSuccess)
-                    {
-                        bs.GenerateANewPiece(gsd);
-                        if (bs.Value == 4)
-                            gsd.score += 4;
-                        moveSuccess = false;
-                    }
-                    if (bs.Value != 0)
-                    {
-                        gsd.boardValues[bs.X, bs.Y] = bs.Value;
-                        if (bs.Value == 4)
-                            gsd.score += 4;
-                    }
-                    DrawGameBoard(d2dRenderTarget);
-                    if (!gsd.isGameOver)
-                    {
-                        switch (gamePadState.Gamepad.Buttons)
-                        {
-                            case GamepadButtonFlags.DPadLeft:
-                                {
-                                    moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
-                                }
-                                break;
-                            case GamepadButtonFlags.DPadRight:
-                                {
-                                    moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
-                                }
-                                break;
-                            case GamepadButtonFlags.DPadUp:
-                                {
-                                    moveSuccess = gsd.ProcessMove(MoveDirection.UP);
-                                }
-                                break;
-                            case GamepadButtonFlags.DPadDown:
-                                {
-                                    moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
-                                }
-                                break;
-                            case GamepadButtonFlags.Start:
-                                {
-                                    gsd.isGameOver = true;
-                                }
-                                break;
-                        }
-
-                    }
+                    gameOverScreen.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
+                }
+                else if (startMenu.isVisible)
+                {
+                    startMenu.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
+                }
+                else
+                {
+                    HandleGameInputs();
                 }
             }
 
             d2dRenderTarget.EndDraw();
             swapChain.Present(0, PresentFlags.None);
             //Thread.Sleep(100);
+        }
+
+        public void HandleGameInputs()
+        {
+            if (gamePadState.PacketNumber != userInputProcessor.oldPacketNumber)
+            {
+                if (moveSuccess)
+                {
+                    bs.GenerateANewPiece(gsd);
+                    if (bs.Value == 4)
+                        gsd.score += 4;
+                    moveSuccess = false;
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 4; j++)
+                            gsd.lastTurnValues[i, j] = gsd.boardValues[i, j];
+                }
+                if (bs.Value != 0)
+                {
+                    gsd.boardValues[bs.X, bs.Y] = bs.Value;
+                    if (bs.Value == 4)
+                        gsd.score += 4;
+                }
+                DrawGameBoard(d2dRenderTarget);
+                if (!gsd.isGameOver)
+                {
+
+                    switch (gamePadState.Gamepad.Buttons)
+                    {
+                        case GamepadButtonFlags.DPadLeft:
+                            {
+                                moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
+                            }
+                            break;
+                        case GamepadButtonFlags.DPadRight:
+                            {
+                                moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
+                            }
+                            break;
+                        case GamepadButtonFlags.DPadUp:
+                            {
+                                moveSuccess = gsd.ProcessMove(MoveDirection.UP);
+                            }
+                            break;
+                        case GamepadButtonFlags.DPadDown:
+                            {
+                                moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
+                            }
+                            break;
+                        case GamepadButtonFlags.Start:
+                            {
+                                //gsd.isGameOver = true;
+                                startMenu.isVisible = true;
+                            }
+                            break;
+                        case GamepadButtonFlags.A:
+                            {
+                                //Undo
+                                for (int i = 0; i < 4; i++)
+                                    for (int j = 0; j < 4; j++)
+                                        gsd.boardValues[i, j] = gsd.lastTurnValues[i, j];
+                                moveSuccess = false;
+                                undid = true;
+                            }
+                            break;
+                        case GamepadButtonFlags.Y:
+                            {
+                                gameOverScreen.isVisible = true;
+                                startMenu.isVisible = true;
+                            }
+                            break;
+                    }
+                }
+            }
         }
 
         public void DrawGameBoard(RenderTarget D2DRT)
@@ -209,15 +259,26 @@ namespace Clone2048
                     {
                         RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / 4) * x + 10, topLeftY + (boardHeight / 4) * y + 10,
                             topLeftX + (boardWidth / 4) * x + (boardWidth / 4 - 10), topLeftY + (boardHeight / 4 * y) + (boardHeight / 4 - 10));
-                        D2DRT.FillRectangle(spot, activePieceColor);
+                        RoundedRectangle rSpot = new RoundedRectangle();
+                        rSpot.Rect = spot;
+                        rSpot.RadiusX = 15;
+                        rSpot.RadiusY = 15;
+                        D2DRT.FillRoundedRectangle(rSpot, activePieceColor);
                     }
                     else
                     {
                         RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / 4) * x + 10, topLeftY + (boardHeight / 4) * y + 10,
                             topLeftX + (boardWidth / 4) * x + (boardWidth / 4 - 10), topLeftY + (boardHeight / 4 * y) + (boardHeight / 4 - 10));
-                        //boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)+0.2),1f));
-                        D2DRT.FillRectangle(spot, boardSpotColor);
-                        D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat, spot, boardColor);
+                        boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f));
+                        RoundedRectangle rSpot = new RoundedRectangle();
+                        rSpot.Rect = spot;
+                        rSpot.RadiusX = 15;
+                        rSpot.RadiusY = 15;
+                        D2DRT.FillRoundedRectangle(rSpot, boardSpotColor);
+                        if(gsd.boardValues[x,y].ToString().Length<4)
+                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat, spot, boardColor);
+                        else
+                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat4Digits, spot, boardColor);
                     }
                 }
             }

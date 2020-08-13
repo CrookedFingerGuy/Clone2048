@@ -11,6 +11,7 @@ namespace Clone2048
     public class GameStateData
     {
         public int[,] boardValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+        public int[,] lastTurnValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         public int score;
         public bool isGameOver;
         public bool isGameWon;
@@ -18,6 +19,17 @@ namespace Clone2048
 
         public GameStateData()
         {
+            score = 0;
+            gridSize = 4;
+            isGameOver = false;
+            isGameWon = false;
+        }
+
+        public void NewGame()
+        {
+            boardValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+            lastTurnValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+
             score = 0;
             gridSize = 4;
             isGameOver = false;
