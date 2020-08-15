@@ -93,11 +93,13 @@
     <Compile Include="RForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SDXMenuControls\SDXMenu.cs" />
     <Compile Include="SDXMenuControls\SDXMenuButton.cs" />
     <Compile Include="SDXMenuControls\SDXMenuControl.cs" />
     <Compile Include="SDXMenuControls\SDXMenuImage.cs" />
     <Compile Include="SDXMenuControls\SDXMenuIntegerBox.cs" />
     <Compile Include="SDXMenuControls\SDXMenuLabel.cs" />
+    <Compile Include="SettingsMenu.cs" />
     <Compile Include="StartMenu.cs" />
     <Compile Include="UserInputProccessor.cs" />
   </ItemGroup>

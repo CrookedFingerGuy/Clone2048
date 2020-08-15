@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Clone2048.SDXMenuControls;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 using SharpDX.Mathematics.Interop;
@@ -10,36 +11,18 @@ using SharpDX.XInput;
 
 namespace Clone2048
 {
-    public class GameOverScreen
+    public class GameOverScreen :SDXMenu
     {
-        int screenWidth;
-        int ScreenHeight;
-        int menuWidth;
-        int menuHeight;
-        public bool isVisible;
-        SolidColorBrush backgroundColor;
-        RawRectangleF menuSize;
-        List<SDXMenuControl> menuControls;
-        TextFormat startMenuTextFormat;
-        int activeControl;
 
-        public GameOverScreen(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd)
+        public GameOverScreen(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd): base(D2DRT, tf, width, height)
         {
-            isVisible = false;
-            screenWidth = width;
-            ScreenHeight = height;
-            menuWidth = screenWidth;
-            menuHeight = ScreenHeight;
-            menuSize = new RawRectangleF(0, 0, menuWidth, menuHeight);
-            backgroundColor = new SolidColorBrush(D2DRT, new RawColor4(0.75f, 0.75f, 0.75f, 1.0f));
-            startMenuTextFormat = tf;
-
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
             int menuYOffset = 200;
             menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Game Over",0,0, screenWidth, ScreenHeight));
             activeControl = 0;
             menuControls[activeControl].isActive = true;
+            isVisible = false;
         }
 
         public void ShowGameOverScreen(RenderTarget D2DRT)
@@ -58,6 +41,7 @@ namespace Clone2048
                 if (controllerState.Gamepad.Buttons == GamepadButtonFlags.A)
                 {
                     this.isVisible = false;
+                    nextMenu.isVisible = true;
                     lgsd.NewGame();                    
                 }
             }

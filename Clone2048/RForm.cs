@@ -68,6 +68,7 @@ namespace Clone2048
         TextFormat scoreTextFormat;
         StartMenu startMenu;
         GameOverScreen gameOverScreen;
+        SettingsMenu settingsMenu;
 
         public RForm(string text) : base(text)
         {
@@ -134,6 +135,15 @@ namespace Clone2048
 
             TextFormat gameOverMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 72);
             gameOverScreen =new GameOverScreen(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd);
+            
+            TextFormat settingsMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
+            settingsMenu=new SettingsMenu(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd);
+
+            gameOverScreen.nextMenu = startMenu;
+            startMenu.nextMenu = gameOverScreen;
+            //settingsMenu.nextMenu = startMenu;
+
+
 
         }
 
