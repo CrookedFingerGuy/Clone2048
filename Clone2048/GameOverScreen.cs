@@ -58,7 +58,7 @@ namespace Clone2048
                 if (controllerState.Gamepad.Buttons == GamepadButtonFlags.A)
                 {
                     this.isVisible = false;
-                    lgsd.NewGame();
+                    lgsd.NewGame();                    
                 }
             }
         }

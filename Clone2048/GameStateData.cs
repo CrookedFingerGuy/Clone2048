@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,9 @@ namespace Clone2048
     {
         public int[,] boardValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         public int[,] lastTurnValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+        public int[,] testTurnValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         public int score;
+        public int oldScore;
         public bool isGameOver;
         public bool isGameWon;
         public int gridSize;
@@ -24,6 +27,53 @@ namespace Clone2048
             isGameOver = false;
             isGameWon = false;
         }
+
+        public bool CheckForRemainingMoves()
+        {
+            bool remainingMoveFound = false;
+
+            SaveBoardState();
+            remainingMoveFound = ProcessMove(MoveDirection.DOWN);            
+            RestoreBoardState();
+            if (remainingMoveFound)
+                return remainingMoveFound;
+
+            SaveBoardState();
+            remainingMoveFound = ProcessMove(MoveDirection.LEFT);
+            RestoreBoardState();
+            if (remainingMoveFound)
+                return remainingMoveFound;
+
+            SaveBoardState();
+            remainingMoveFound = ProcessMove(MoveDirection.RIGHT);
+            RestoreBoardState();
+            if (remainingMoveFound)
+                return remainingMoveFound;
+
+            SaveBoardState();
+            remainingMoveFound = ProcessMove(MoveDirection.UP);
+            RestoreBoardState();
+
+            return remainingMoveFound;
+        }
+
+        void SaveBoardState()
+        {
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    testTurnValues[i, j] = boardValues[i, j];
+            oldScore =score;
+        }
+
+        void RestoreBoardState()
+        {
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    boardValues[i, j] = testTurnValues[i, j];
+            score = oldScore;
+
+        }
+
 
         public void NewGame()
         {

@@ -39,8 +39,9 @@ namespace Clone2048
         RenderTarget d2dRenderTarget;
         SolidColorBrush solidColorBrush;
         DirectInput directInput;
-        Keyboard keyboard;
+        public Keyboard keyboard;
         KeyboardUpdate[] keyData;
+        KeyboardState keys;
         State gamePadState;
 
         UserInputProcessor userInputProcessor;
@@ -62,7 +63,6 @@ namespace Clone2048
         GameStateData gsd;
         BoardSpot bs;
         bool moveSuccess = true;
-        bool undid = false;
         SolidColorBrush activePieceColor;
         SolidColorBrush scoreColor;
         TextFormat scoreTextFormat;
@@ -98,6 +98,7 @@ namespace Clone2048
             keyboard = new Keyboard(directInput);
             keyboard.Properties.BufferSize = 128;
             keyboard.Acquire();
+            keys = new KeyboardState();
             userInputProcessor = new UserInputProcessor();
             TestTextArea = new SharpDX.Mathematics.Interop.RawRectangleF(10, 10, 400, 400);
             gameInputTimer = new Stopwatch();
@@ -155,6 +156,8 @@ namespace Clone2048
             {
                 userInputProcessor.oldPacketNumber = gamePadState.PacketNumber;
                 gamePadState = userInputProcessor.GetGamePadState();
+                keyboard.Poll();
+                keyData = keyboard.GetBufferedData();
                 gameInputTimer.Restart();
                 if (gameOverScreen.isVisible)
                 {
@@ -177,7 +180,7 @@ namespace Clone2048
 
         public void HandleGameInputs()
         {
-            if (gamePadState.PacketNumber != userInputProcessor.oldPacketNumber)
+            if (!gsd.isGameOver)
             {
                 if (moveSuccess)
                 {
@@ -185,39 +188,85 @@ namespace Clone2048
                     if (bs.Value == 4)
                         gsd.score += 4;
                     moveSuccess = false;
-                    for (int i = 0; i < 4; i++)
-                        for (int j = 0; j < 4; j++)
-                            gsd.lastTurnValues[i, j] = gsd.boardValues[i, j];
                 }
                 if (bs.Value != 0)
                 {
                     gsd.boardValues[bs.X, bs.Y] = bs.Value;
-                    if (bs.Value == 4)
-                        gsd.score += 4;
                 }
                 DrawGameBoard(d2dRenderTarget);
-                if (!gsd.isGameOver)
-                {
+                gsd.isGameOver = !gsd.CheckForRemainingMoves();
 
+                foreach (var state in keyData)
+                {
+                    if (state.IsPressed)
+                    {
+                        switch (state.Key)
+                        {
+                            case Key.Left:
+                                {
+                                    SaveUndoState();
+                                    moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
+                                }
+                                break;
+                            case Key.Right:
+                                {
+                                    SaveUndoState();
+                                    moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
+                                }
+                                break;
+                            case Key.Up:
+                                {
+                                    SaveUndoState();
+                                    moveSuccess = gsd.ProcessMove(MoveDirection.UP);
+                                }
+                                break;
+                            case Key.Down:
+                                {
+                                    SaveUndoState();
+                                    moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
+                                }
+                                break;
+                            case Key.Escape:
+                                {
+                                    startMenu.isVisible = true;
+                                }
+                                break;
+                            case Key.Space:
+                                {
+                                    RestoreUndoState();
+                                    moveSuccess = false;
+
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                if (gamePadState.PacketNumber != userInputProcessor.oldPacketNumber)
+                {
                     switch (gamePadState.Gamepad.Buttons)
                     {
                         case GamepadButtonFlags.DPadLeft:
                             {
+                                SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
                             }
                             break;
                         case GamepadButtonFlags.DPadRight:
                             {
+                                SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
                             }
                             break;
                         case GamepadButtonFlags.DPadUp:
                             {
+                                SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.UP);
                             }
                             break;
                         case GamepadButtonFlags.DPadDown:
                             {
+                                SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
                             }
                             break;
@@ -230,11 +279,8 @@ namespace Clone2048
                         case GamepadButtonFlags.A:
                             {
                                 //Undo
-                                for (int i = 0; i < 4; i++)
-                                    for (int j = 0; j < 4; j++)
-                                        gsd.boardValues[i, j] = gsd.lastTurnValues[i, j];
+                                RestoreUndoState();
                                 moveSuccess = false;
-                                undid = true;
                             }
                             break;
                         case GamepadButtonFlags.Y:
@@ -246,6 +292,29 @@ namespace Clone2048
                     }
                 }
             }
+            else
+            {
+                gameOverScreen.isVisible = true;
+                startMenu.isVisible = true;
+                gsd.NewGame();
+            }                        
+        }
+
+        public void SaveUndoState()
+        {
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    gsd.lastTurnValues[i, j] = gsd.boardValues[i, j];
+            gsd.oldScore = gsd.score;
+        }
+
+        public void RestoreUndoState()
+        {
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    gsd.boardValues[i, j] = gsd.lastTurnValues[i, j];
+            gsd.score = gsd.oldScore;
+            bs.Value = 0;
         }
 
         public void DrawGameBoard(RenderTarget D2DRT)
@@ -269,7 +338,7 @@ namespace Clone2048
                     {
                         RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / 4) * x + 10, topLeftY + (boardHeight / 4) * y + 10,
                             topLeftX + (boardWidth / 4) * x + (boardWidth / 4 - 10), topLeftY + (boardHeight / 4 * y) + (boardHeight / 4 - 10));
-                        boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f));
+                        boardSpotColor.Color = new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f);
                         RoundedRectangle rSpot = new RoundedRectangle();
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
