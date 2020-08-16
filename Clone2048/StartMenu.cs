@@ -14,7 +14,7 @@ namespace Clone2048
 {
     public class StartMenu : SDXMenu
     {
-        public StartMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd) : base(D2DRT,tf,width,height)
+        public StartMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd,string name) : base(D2DRT,tf,width,height,name)
         {
 
             menuControls = new List<SDXMenuControl>();
@@ -30,7 +30,7 @@ namespace Clone2048
             menuControls[activeControl].isActive = true;
         }
 
-        public void ShowStartMenu(RenderTarget D2DRT)
+        public override void ShowMenu(RenderTarget D2DRT)
         {
             foreach(SDXMenuControl s in menuControls )
             {
@@ -38,7 +38,7 @@ namespace Clone2048
             }
         }
 
-        public void HandleGamePadInputs(State controllerState,GameStateData lgsd, int oldPacketNumber)
+        public override string HandleInputs(State controllerState,GameStateData lgsd, int oldPacketNumber)
         {
             if (controllerState.PacketNumber != oldPacketNumber)
             {
@@ -70,15 +70,14 @@ namespace Clone2048
                     switch (activeControl)
                     {
                         case 0:
-                            {
-                                this.isVisible = false;
+                            {                                
                                 lgsd.NewGame();
+                                return "";
                             }
                             break;
                         case 1:
                             {
-                                this.isVisible = false;
-                                nextMenu.isVisible = true;
+                                return "settings";
                             }
                             break;
                         case 2:
@@ -90,6 +89,7 @@ namespace Clone2048
                 }
 
             }
+            return "start";
 
         }
     }

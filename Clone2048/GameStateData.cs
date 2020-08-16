@@ -59,16 +59,16 @@ namespace Clone2048
 
         void SaveBoardState()
         {
-            for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
                     testTurnValues[i, j] = boardValues[i, j];
             oldScore =score;
         }
 
         void RestoreBoardState()
         {
-            for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
                     boardValues[i, j] = testTurnValues[i, j];
             score = oldScore;
 
@@ -81,7 +81,6 @@ namespace Clone2048
             lastTurnValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
             score = 0;
-            gridSize = 4;
             isGameOver = false;
             isGameWon = false;
         }

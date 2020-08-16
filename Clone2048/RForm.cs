@@ -23,6 +23,7 @@ using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using Device = SharpDX.Direct3D11.Device;
 using Factory = SharpDX.DXGI.Factory;
 using System.Windows.Forms;
+using Clone2048.SDXMenuControls;
 
 namespace Clone2048
 {
@@ -62,6 +63,7 @@ namespace Clone2048
         Board b;
         GameStateData gsd;
         BoardSpot bs;
+        int gridSize;
         bool moveSuccess = true;
         SolidColorBrush activePieceColor;
         SolidColorBrush scoreColor;
@@ -69,6 +71,10 @@ namespace Clone2048
         StartMenu startMenu;
         GameOverScreen gameOverScreen;
         SettingsMenu settingsMenu;
+        AreYouSureBox areYouSureBox;
+        SDXSceneFlow sceneFlow;
+        string currentMenu;
+
 
         public RForm(string text) : base(text)
         {
@@ -114,8 +120,11 @@ namespace Clone2048
                 topLeftX + boardWidth, topLeftY + boardHeight);
 
             gsd= new GameStateData();
-            b = new Board();
+            //b = new Board();
             bs = new BoardSpot(0.1);
+            gridSize = 4;
+            gsd.gridSize = 4;
+            bs.gridSize = 4;
             bs.GenerateANewPiece(gsd);
             if (bs.Value == 4)
                 gsd.score += 4;
@@ -130,21 +139,24 @@ namespace Clone2048
             scoreTextFormat = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
 
             TextFormat startMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
-            startMenu = new StartMenu(d2dRenderTarget,startMenuText,screenWidth,screenHeight,gsd);
-            startMenu.isVisible = true;
-
+            startMenu = new StartMenu(d2dRenderTarget,startMenuText,screenWidth,screenHeight,gsd,"start");
+  
             TextFormat gameOverMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 72);
-            gameOverScreen =new GameOverScreen(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd);
-            
+            gameOverScreen =new GameOverScreen(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd,"gameover");
+
             TextFormat settingsMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
-            settingsMenu=new SettingsMenu(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd);
+            settingsMenu = new SettingsMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, bs, "settings");
 
-            gameOverScreen.nextMenu = startMenu;
-            startMenu.nextMenu = gameOverScreen;
-            //settingsMenu.nextMenu = startMenu;
+            TextFormat sureMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
+            areYouSureBox = new AreYouSureBox(d2dRenderTarget, sureMenuText, screenWidth, screenHeight, gsd, bs, "areyousure");
 
-
-
+            sceneFlow = new SDXSceneFlow();
+            sceneFlow.menuList.Add(startMenu);
+            sceneFlow.menuList.Add(gameOverScreen);
+            sceneFlow.menuList.Add(settingsMenu);
+            sceneFlow.menuList.Add(areYouSureBox);
+            currentMenu = "start";
+            sceneFlow.activeMenu = sceneFlow.NextMenu(currentMenu);
         }
 
         public void rLoop()
@@ -152,15 +164,17 @@ namespace Clone2048
             d2dRenderTarget.BeginDraw();
             d2dRenderTarget.Clear(Color.Black);
 
-            if (gameOverScreen.isVisible)
-                gameOverScreen.ShowGameOverScreen(d2dRenderTarget);
-            else if (startMenu.isVisible)
-                startMenu.ShowStartMenu(d2dRenderTarget);
+
+            gridSize = gsd.gridSize;
+            sceneFlow.NextMenu(currentMenu);
+            if(currentMenu!="")
+                sceneFlow.menuList[sceneFlow.activeMenu].ShowMenu(d2dRenderTarget);
             else
             {
                 DrawGameBoard(d2dRenderTarget);
                 d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
             }
+
 
             if (gameInputTimer.ElapsedMilliseconds >= 25)
             {
@@ -169,18 +183,23 @@ namespace Clone2048
                 keyboard.Poll();
                 keyData = keyboard.GetBufferedData();
                 gameInputTimer.Restart();
-                if (gameOverScreen.isVisible)
-                {
-                    gameOverScreen.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
-                }
-                else if (startMenu.isVisible)
-                {
-                    startMenu.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
-                }
+
+                if (currentMenu != "")
+                    currentMenu = sceneFlow.menuList[sceneFlow.activeMenu].HandleInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
                 else
-                {
                     HandleGameInputs();
-                }
+                //if (gameOverScreen.isVisible)
+                //{
+                //    gameOverScreen.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
+                //}
+                //else if (startMenu.isVisible)
+                //{
+                //    startMenu.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
+                //}
+                //else
+                //{
+                //    HandleGameInputs();
+                //}
             }
 
             d2dRenderTarget.EndDraw();
@@ -238,7 +257,8 @@ namespace Clone2048
                                 break;
                             case Key.Escape:
                                 {
-                                    startMenu.isVisible = true;
+                                    currentMenu = "areyousure";
+                                    //startMenu.isVisible = true;
                                 }
                                 break;
                             case Key.Space:
@@ -283,7 +303,8 @@ namespace Clone2048
                         case GamepadButtonFlags.Start:
                             {
                                 //gsd.isGameOver = true;
-                                startMenu.isVisible = true;
+                                //startMenu.isVisible = true;
+                                currentMenu = "areyousure";
                             }
                             break;
                         case GamepadButtonFlags.A:
@@ -295,8 +316,9 @@ namespace Clone2048
                             break;
                         case GamepadButtonFlags.Y:
                             {
-                                gameOverScreen.isVisible = true;
-                                startMenu.isVisible = true;
+                                currentMenu = "gameover";
+                                //gameOverScreen.isVisible = true;
+                                //startMenu.isVisible = true;
                             }
                             break;
                     }
@@ -304,24 +326,23 @@ namespace Clone2048
             }
             else
             {
-                gameOverScreen.isVisible = true;
-                startMenu.isVisible = true;
+                currentMenu = "gameover";
                 gsd.NewGame();
             }                        
         }
 
         public void SaveUndoState()
         {
-            for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
                     gsd.lastTurnValues[i, j] = gsd.boardValues[i, j];
             gsd.oldScore = gsd.score;
         }
 
         public void RestoreUndoState()
         {
-            for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
                     gsd.boardValues[i, j] = gsd.lastTurnValues[i, j];
             gsd.score = gsd.oldScore;
             bs.Value = 0;
@@ -330,14 +351,14 @@ namespace Clone2048
         public void DrawGameBoard(RenderTarget D2DRT)
         {
             D2DRT.FillRectangle(boardRect,boardColor);
-            for(int x=0;x<4;x++)
+            for(int x=0;x< gridSize; x++)
             {
-                for(int y=0; y<4;y++)
+                for(int y=0; y< gridSize; y++)
                 {
                     if(gsd.boardValues[x,y]==0)
                     {
-                        RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / 4) * x + 10, topLeftY + (boardHeight / 4) * y + 10,
-                            topLeftX + (boardWidth / 4) * x + (boardWidth / 4 - 10), topLeftY + (boardHeight / 4 * y) + (boardHeight / 4 - 10));
+                        RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / gridSize) * x + 10, topLeftY + (boardHeight / gridSize) * y + 10,
+                            topLeftX + (boardWidth / gridSize) * x + (boardWidth / gridSize - 10), topLeftY + (boardHeight / gridSize * y) + (boardHeight / gridSize - 10));
                         RoundedRectangle rSpot = new RoundedRectangle();
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
@@ -346,15 +367,15 @@ namespace Clone2048
                     }
                     else
                     {
-                        RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / 4) * x + 10, topLeftY + (boardHeight / 4) * y + 10,
-                            topLeftX + (boardWidth / 4) * x + (boardWidth / 4 - 10), topLeftY + (boardHeight / 4 * y) + (boardHeight / 4 - 10));
+                        RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / gridSize) * x + 10, topLeftY + (boardHeight / gridSize) * y + 10,
+                            topLeftX + (boardWidth / gridSize) * x + (boardWidth / gridSize - 10), topLeftY + (boardHeight / gridSize * y) + (boardHeight / gridSize - 10));
                         boardSpotColor.Color = new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f);
                         RoundedRectangle rSpot = new RoundedRectangle();
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
                         rSpot.RadiusY = 15;
                         D2DRT.FillRoundedRectangle(rSpot, boardSpotColor);
-                        if(gsd.boardValues[x,y].ToString().Length<4)
+                        if(gsd.boardValues[x,y].ToString().Length< gridSize)
                             D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat, spot, boardColor);
                         else
                             D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat4Digits, spot, boardColor);

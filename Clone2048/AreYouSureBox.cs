@@ -1,36 +1,33 @@
-﻿using Clone2048.SDXMenuControls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Clone2048.SDXMenuControls;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 using SharpDX.Mathematics.Interop;
 using SharpDX.XInput;
-using System.Windows.Forms;
 
 namespace Clone2048
 {
-    public class SettingsMenu : SDXMenu
+    public class AreYouSureBox :SDXMenu
     {
-        BoardSpot lbs;
-        GameStateData lgsd;
-        public SettingsMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, BoardSpot bs, string name) : base(D2DRT, tf, width, height,name)
+        public AreYouSureBox(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, BoardSpot bs, string name):base(D2DRT, tf, width, height, name)
         {
-            lgsd = gsd;
-            lbs = bs;
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
             int menuYOffset = 200;
-            menuControls.Add(new SDXMenuIntegerBox(D2DRT,tf,"Grid Size",menuWidth/2-125,menuHeight/2-menuYOffset+controlYSpacing * menuControls.Count, 250,50,4));
-            menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Exit Settings",
-                menuWidth / 2 - 200, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 400, 50));
-            activeControl = 0;
+            menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Yes",
+                menuWidth / 2 - 50, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 100, 50));
+            menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "No",
+                menuWidth / 2 - 50, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 100, 50));
+            menuControls.Add(new SDXMenuLabel(D2DRT, tf, "Are you sure you want to quit?", menuWidth/2-200,
+                                            menuHeight/2-300, 400, 100));
+            activeControl = 1;
             menuControls[activeControl].isActive = true;
 
         }
-
 
         public override void ShowMenu(RenderTarget D2DRT)
         {
@@ -66,40 +63,29 @@ namespace Clone2048
                         menuControls[activeControl].isActive = true;
                     }
                 }
-                if (controllerState.Gamepad.Buttons == GamepadButtonFlags.DPadLeft)
-                {
-                    if (activeControl == 0)
-                    {
-                        menuControls[activeControl].value = 3;
-                    }
-                }
-                if (controllerState.Gamepad.Buttons == GamepadButtonFlags.DPadRight)
-                {
-                    if (activeControl == 0)
-                    {
-                        menuControls[activeControl].value = 4;
-                    }
-                }
-
 
                 if (controllerState.Gamepad.Buttons == GamepadButtonFlags.A)
                 {
                     switch (activeControl)
                     {
+                        case 0:
+                            {
+                                //this.isVisible = false;
+                                lgsd.NewGame();
+                                return "start";
+                            }
+                            break;
                         case 1:
                             {
                                 //this.isVisible = false;
-                                lgsd.gridSize = menuControls[0].value;
-                                lbs.gridSize= menuControls[0].value;
-                                lgsd.NewGame();
-                                return "start";
+                                return "";
                             }
                             break;
                     }
                 }
 
             }
-            return "settings";
+            return "areyousure";
         }
 
     }

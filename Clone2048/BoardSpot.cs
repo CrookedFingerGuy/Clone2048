@@ -12,11 +12,13 @@ namespace Clone2048
         public int X;
         public int Y;
         public int Value;
+        public int gridSize;
 
         public BoardSpot(double p)
         {
             percentToGenerateA4 = p;
             Value = 0;
+            gridSize = 4;
         }
 
         public void GenerateANewPiece(GameStateData lgsd)
@@ -30,9 +32,9 @@ namespace Clone2048
 
             int blank = 0;
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < gridSize; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < gridSize; j++)
                 {
                     if (lgsd.boardValues[i, j] == 0)
                         blank++;
@@ -43,9 +45,9 @@ namespace Clone2048
             {
                 int rPos = rand.Next(1, blank);
                 int counter = 0; ;
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < gridSize; i++)
                 {
-                    for (int j = 0; j < 4; j++)
+                    for (int j = 0; j < gridSize; j++)
                     {
                         if (lgsd.boardValues[i, j] == 0)
                         {

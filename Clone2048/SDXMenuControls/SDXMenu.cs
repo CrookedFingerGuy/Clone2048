@@ -13,7 +13,7 @@ namespace Clone2048.SDXMenuControls
     public class SDXMenu
     {
         public bool isVisible;
-        public SDXMenu nextMenu;
+        public string menuName;
 
         protected int screenWidth;
         protected int ScreenHeight;
@@ -24,17 +24,28 @@ namespace Clone2048.SDXMenuControls
         protected List<SDXMenuControl> menuControls;
         protected TextFormat startMenuTextFormat;
         protected int activeControl;
-        public SDXMenu(RenderTarget D2DRT, TextFormat tf, int width, int height)
+        public SDXMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, string name)
         {
             isVisible = true;
             screenWidth = width;
             ScreenHeight = height;
             menuWidth = screenWidth;
             menuHeight = ScreenHeight;
+            menuName = name;
             menuSize = new RawRectangleF(0, 0, menuWidth, menuHeight);
             backgroundColor = new SolidColorBrush(D2DRT, new RawColor4(0.75f, 0.75f, 0.75f, 1.0f));
             startMenuTextFormat = tf;
         }
 
+        public virtual string HandleInputs(State controllerState, GameStateData lgsd, int oldPacketNumber)
+        {
+            return "start";
+        }
+
+        public virtual void ShowMenu(RenderTarget D2DRT)
+        {
+
+        }
+        
     }
 }

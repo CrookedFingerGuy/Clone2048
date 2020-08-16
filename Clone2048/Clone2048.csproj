@@ -84,6 +84,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AreYouSureBox.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="BoardSpot.cs" />
     <Compile Include="GameOverScreen.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="SDXMenuControls\SDXMenuImage.cs" />
     <Compile Include="SDXMenuControls\SDXMenuIntegerBox.cs" />
     <Compile Include="SDXMenuControls\SDXMenuLabel.cs" />
+    <Compile Include="SDXMenuControls\SDXSceneFlow.cs" />
     <Compile Include="SettingsMenu.cs" />
     <Compile Include="StartMenu.cs" />
     <Compile Include="UserInputProccessor.cs" />

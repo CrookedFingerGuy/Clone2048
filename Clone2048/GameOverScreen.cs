@@ -14,7 +14,7 @@ namespace Clone2048
     public class GameOverScreen :SDXMenu
     {
 
-        public GameOverScreen(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd): base(D2DRT, tf, width, height)
+        public GameOverScreen(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData lgsd,string name): base(D2DRT, tf, width, height,name)
         {
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
@@ -25,7 +25,7 @@ namespace Clone2048
             isVisible = false;
         }
 
-        public void ShowGameOverScreen(RenderTarget D2DRT)
+        public override void ShowMenu(RenderTarget D2DRT)
         {
             foreach (SDXMenuControl s in menuControls)
             {
@@ -33,18 +33,17 @@ namespace Clone2048
             }
         }
 
-        public void HandleGamePadInputs(State controllerState, GameStateData lgsd, int oldPacketNumber)
+        public override string HandleInputs(State controllerState, GameStateData lgsd, int oldPacketNumber)
         {
             if (controllerState.PacketNumber != oldPacketNumber)
             {
 
                 if (controllerState.Gamepad.Buttons == GamepadButtonFlags.A)
                 {
-                    this.isVisible = false;
-                    nextMenu.isVisible = true;
-                    lgsd.NewGame();                    
+                    return "start";
                 }
             }
+            return "gameover";
         }
     }
 }
