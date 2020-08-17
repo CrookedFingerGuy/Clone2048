@@ -70,10 +70,13 @@ namespace Clone2048
         TextFormat scoreTextFormat;
         StartMenu startMenu;
         GameOverScreen gameOverScreen;
+        MadeHighScoreMenu madeHighScoreMenu;
         SettingsMenu settingsMenu;
         AreYouSureBox areYouSureBox;
+        ViewHighScores viewHighScores;
         SDXSceneFlow sceneFlow;
         string currentMenu;
+        HighScores highs;
 
 
         public RForm(string text) : base(text)
@@ -150,13 +153,21 @@ namespace Clone2048
             TextFormat sureMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
             areYouSureBox = new AreYouSureBox(d2dRenderTarget, sureMenuText, screenWidth, screenHeight, gsd, bs, "areyousure");
 
+            madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore");
+
+            highs = new HighScores();
+            viewHighScores = new ViewHighScores(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight,highs , "viewhighscores");
+
             sceneFlow = new SDXSceneFlow();
             sceneFlow.menuList.Add(startMenu);
             sceneFlow.menuList.Add(gameOverScreen);
             sceneFlow.menuList.Add(settingsMenu);
             sceneFlow.menuList.Add(areYouSureBox);
+            sceneFlow.menuList.Add(viewHighScores);
+            sceneFlow.menuList.Add(madeHighScoreMenu);
             currentMenu = "start";
             sceneFlow.activeMenu = sceneFlow.NextMenu(currentMenu);
+
         }
 
         public void rLoop()
@@ -316,9 +327,16 @@ namespace Clone2048
                             break;
                         case GamepadButtonFlags.Y:
                             {
-                                currentMenu = "gameover";
-                                //gameOverScreen.isVisible = true;
-                                //startMenu.isVisible = true;
+                                if (highs.CheckIfNewHighScore(gsd.score))
+                                {
+                                    madeHighScoreMenu.finalScore = gsd.score;
+                                    currentMenu = "madehighscore";
+                                }
+                                else
+                                {
+                                    gameOverScreen.finalScore = gsd.score;
+                                    currentMenu = "gameover";
+                                }
                             }
                             break;
                     }
@@ -326,7 +344,16 @@ namespace Clone2048
             }
             else
             {
-                currentMenu = "gameover";
+                if (highs.CheckIfNewHighScore(gsd.score))
+                {
+                    madeHighScoreMenu.finalScore = gsd.score;
+                    currentMenu = "madehighscore";
+                }
+                else
+                {
+                    gameOverScreen.finalScore = gsd.score;
+                    currentMenu = "gameover";
+                }
                 gsd.NewGame();
             }                        
         }

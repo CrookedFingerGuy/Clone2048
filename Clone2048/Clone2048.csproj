@@ -89,11 +89,13 @@
     <Compile Include="BoardSpot.cs" />
     <Compile Include="GameOverScreen.cs" />
     <Compile Include="GameStateData.cs" />
+    <Compile Include="HighScores.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SDXMenuControls\MadeHighScoreMenu.cs" />
     <Compile Include="SDXMenuControls\SDXMenu.cs" />
     <Compile Include="SDXMenuControls\SDXMenuButton.cs" />
     <Compile Include="SDXMenuControls\SDXMenuControl.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="SettingsMenu.cs" />
     <Compile Include="StartMenu.cs" />
     <Compile Include="UserInputProccessor.cs" />
+    <Compile Include="ViewHighScores.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

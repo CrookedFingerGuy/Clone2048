@@ -14,8 +14,10 @@ namespace Clone2048
         SolidColorBrush labelSCBrush;
         SolidColorBrush activeSCBrush;
         RawRectangleF valueBox;
+        int valueBoxWidth;
+        int valueBoxHeight;
 
-        public SDXMenuIntegerBox(RenderTarget D2DRT, TextFormat tf, string l, int x, int y, int width, int height, int v):base(x,y,width,height)
+        public SDXMenuIntegerBox(RenderTarget D2DRT, TextFormat tf, string l, int x, int y, int width, int height,int vbw,int vbh, int v):base(x,y,width,height)
         {
             label = l;
             tFormat = tf;
@@ -25,8 +27,8 @@ namespace Clone2048
             labelSCBrush = new SolidColorBrush(D2DRT, labelColor);
 
             int gapBetweenLabelAndValueBox = 15;
-            int valueBoxWidth = 60;
-            int valueBoxHeight = 20;
+            valueBoxHeight = vbh;
+            valueBoxWidth = vbw;
             valueBox = new RawRectangleF(x + width + gapBetweenLabelAndValueBox, y, x + width + gapBetweenLabelAndValueBox + valueBoxWidth, y + valueBoxHeight);
 
             activeColor = new RawColor4(1f, 0f, 0f, 1f);

@@ -22,6 +22,8 @@ namespace Clone2048
             int menuYOffset = 200;
             menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Play",
                 menuWidth / 2 - 90, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 180, 50));
+            menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "High Scores",
+                menuWidth / 2 - 150, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 300, 50));
             menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Settings",
                 menuWidth / 2 - 110, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 220, 50));
             menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Quit",
@@ -77,10 +79,15 @@ namespace Clone2048
                             break;
                         case 1:
                             {
-                                return "settings";
+                                return "viewhighscores";
                             }
                             break;
                         case 2:
+                            {
+                                return "settings";
+                            }
+                            break;
+                        case 3:
                             {
                                 Application.Exit();
                             }

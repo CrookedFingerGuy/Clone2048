@@ -7,11 +7,11 @@ namespace Clone2048
 {
     class SDXMenuLabel:SDXMenuControl
     {
-        string label;
+        public string label;
         RawColor4 labelColor;
         SolidColorBrush labelSCBrush;
         RawRectangleF labelRect;
-        TextFormat tFormat;
+        public TextFormat tFormat;
 
         public SDXMenuLabel(RenderTarget D2DRT, TextFormat tf, string l, int x,int y,int width,int height):base(x,y,width,height)
         {

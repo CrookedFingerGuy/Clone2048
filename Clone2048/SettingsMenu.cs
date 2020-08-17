@@ -23,7 +23,7 @@ namespace Clone2048
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
             int menuYOffset = 200;
-            menuControls.Add(new SDXMenuIntegerBox(D2DRT,tf,"Grid Size",menuWidth/2-125,menuHeight/2-menuYOffset+controlYSpacing * menuControls.Count, 250,50,4));
+            menuControls.Add(new SDXMenuIntegerBox(D2DRT,tf,"Grid Size",menuWidth/2-125,menuHeight/2-menuYOffset+controlYSpacing * menuControls.Count, 250,50,60,50,4));
             menuControls.Add(new SDXMenuButton(D2DRT, startMenuTextFormat, "Exit Settings",
                 menuWidth / 2 - 200, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 400, 50));
             activeControl = 0;
