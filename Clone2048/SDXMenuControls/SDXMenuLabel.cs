@@ -22,7 +22,7 @@ namespace Clone2048
             labelSCBrush = new SolidColorBrush(D2DRT, labelColor);
             isSelectable = false;
         }
-        public override void DrawControl(RenderTarget D2DRT, TextFormat tFormat)
+        public override void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
             D2DRT.DrawText(label, tFormat, labelRect, labelSCBrush);
         }

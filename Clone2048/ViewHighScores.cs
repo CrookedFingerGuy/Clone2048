@@ -14,9 +14,12 @@ namespace Clone2048
     public class ViewHighScores:SDXMenu
     {
         public HighScores lHighs;
-        public ViewHighScores(RenderTarget D2DRT, TextFormat tf, int width, int height, HighScores highs, string name) : base(D2DRT, tf, width, height, name)
+        string WorkingPath;
+        public ViewHighScores(RenderTarget D2DRT, TextFormat tf, int width, int height, HighScores highs,string wp, string name) 
+                                    : base(D2DRT, tf, width, height, name)
         {
             lHighs = highs;
+            WorkingPath = wp;
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
             //int menuYOffset = 200;
@@ -39,13 +42,14 @@ namespace Clone2048
 
         public override void ShowMenu(RenderTarget D2DRT)
         {
-            for(int i=2;i<lHighs.scores.Count+2;i++)
+            for (int i = 2; i < lHighs.scores.Count + 2; i++)
             {
-                if((i-1).ToString().Length==1)
-                    (menuControls[i] as SDXMenuLabel).label = (i - 1).ToString() + ")       " + lHighs.names[i - 2] + "    " + lHighs.scores[i - 2].ToString();
+                if ((i - 1).ToString().Length == 1)
+                    (menuControls[i] as SDXMenuLabel).label = (i - 1).ToString() + ")       " + lHighs.scores[i - 2].name + "    " + lHighs.scores[i - 2].score.ToString();
                 else
-                    (menuControls[i] as SDXMenuLabel).label = (i - 1).ToString() + ")    " + lHighs.names[i - 2] + "    " + lHighs.scores[i - 2].ToString();
+                    (menuControls[i] as SDXMenuLabel).label = (i - 1).ToString() + ")    " + lHighs.scores[i - 2].name + "    " + lHighs.scores[i - 2].score.ToString();
             }
+
             foreach (SDXMenuControl s in menuControls)
             {
                 s.DrawControl(D2DRT, startMenuTextFormat);
@@ -59,6 +63,7 @@ namespace Clone2048
 
                 if (controllerState.Gamepad.Buttons == GamepadButtonFlags.A)
                 {
+                    FileUtils.WriteToXmlFile<HighScores>(WorkingPath + @"\HighScores.sco", lHighs, false);
                     return "start";
                 }
             }

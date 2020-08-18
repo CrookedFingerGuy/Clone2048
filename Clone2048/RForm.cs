@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,6 +78,7 @@ namespace Clone2048
         SDXSceneFlow sceneFlow;
         string currentMenu;
         HighScores highs;
+        string WorkingPath;
 
 
         public RForm(string text) : base(text)
@@ -153,10 +155,19 @@ namespace Clone2048
             TextFormat sureMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
             areYouSureBox = new AreYouSureBox(d2dRenderTarget, sureMenuText, screenWidth, screenHeight, gsd, bs, "areyousure");
 
-            madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore");
+            WorkingPath = Directory.GetCurrentDirectory();
+            if (File.Exists(WorkingPath + @"\HighScores.sco"))
+            {
+                highs = FileUtils.ReadFromXmlFile<HighScores>(WorkingPath + @"\HighScores.sco");
+            }
+            else
+            {
+                highs = new HighScores();
+            }
 
-            highs = new HighScores();
-            viewHighScores = new ViewHighScores(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight,highs , "viewhighscores");
+            madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore",highs);
+
+            viewHighScores = new ViewHighScores(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight,highs,WorkingPath , "viewhighscores");
 
             sceneFlow = new SDXSceneFlow();
             sceneFlow.menuList.Add(startMenu);

@@ -9,39 +9,60 @@ namespace Clone2048
     [Serializable]
     public class HighScores
     {
-        public List<int> scores;
-        public List<string> names;
+        public class HighScoreWithName:IComparable
+        {
+            public int score;
+            public string name;
+
+            public HighScoreWithName(int sc,string na)
+            {
+                score = sc;
+                name = na;
+            }
+
+            public HighScoreWithName()
+            {
+
+            }
+
+            int IComparable.CompareTo(object obj)
+            {
+                HighScoreWithName h1 = (HighScoreWithName)obj;
+                if (h1.score > this.score)
+                    return 1;
+
+                if (h1.score < this.score)
+                    return -1;
+                else
+                    return 0;
+            }
+        }
+
+        
+
+        public List<HighScoreWithName> scores;
         public HighScores()
         {
-            scores = new List<int>();
-            names = new List<string>();
-            for(int i=0;i<10;i++)
-            {
-                scores.Add(0);
-                names.Add("....................");
-            }
+            scores = new List<HighScoreWithName>();
         }
 
         public bool CheckIfNewHighScore(int checkValue)
         {
-            foreach(int score in scores)
+            foreach(HighScoreWithName sc in scores)
             {
-                if (checkValue > score)
+                if (checkValue > (int)sc.score)
                     return true;
             }
             return false;
         }
 
         public void InsertNewHighScore(int newScore,string newName)
-        {
-            scores.RemoveAt(scores.Count);
-            names.RemoveAt(names.Count);
+        {            
+            scores.RemoveAt(scores.Count-1);
 
-            scores.Add(newScore);
-            names.Add(newName);
+            scores.Add(new HighScoreWithName(newScore,newName));
 
             scores.Sort();
-            names.Sort();
         }
     }
 }

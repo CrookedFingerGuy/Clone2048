@@ -1,34 +1,37 @@
-﻿using SharpDX.Direct2D1;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 using SharpDX.Mathematics.Interop;
 
 namespace Clone2048
 {
-    class SDXMenuIntegerBox: SDXMenuControl
+    public class SDXMenuLetterInput:SDXMenuControl
     {
-        string label;
+        public string letter;
         RawColor4 labelColor;
         RawColor4 activeColor;
         TextFormat tFormat;
-        RawRectangleF labelRect;
         SolidColorBrush labelSCBrush;
         SolidColorBrush activeSCBrush;
         RawRectangleF valueBox;
         int valueBoxWidth;
         int valueBoxHeight;
-
-        public SDXMenuIntegerBox(RenderTarget D2DRT, TextFormat tf, string l, int x, int y, int width, int height,int vbw,int vbh, int v):base(x,y,width,height)
+        public SDXMenuLetterInput(RenderTarget D2DRT, TextFormat tf, int x, int y, int width, int height) 
+                                : base(x, y, width, height)
         {
-            label = l;
             tFormat = tf;
-            value = v;
-            labelRect = new RawRectangleF(x, y, x + width, y + height);
+            value = -1;
             labelColor = new RawColor4(0f, 0f, 1f, 1f);
             labelSCBrush = new SolidColorBrush(D2DRT, labelColor);
+            letter = "A";
 
             int gapBetweenLabelAndValueBox = 15;
-            valueBoxHeight = vbh;
-            valueBoxWidth = vbw;
+            valueBoxHeight = width;
+            valueBoxWidth = height;
             valueBox = new RawRectangleF(x + width + gapBetweenLabelAndValueBox, y, x + width + gapBetweenLabelAndValueBox + valueBoxWidth, y + valueBoxHeight);
 
             activeColor = new RawColor4(1f, 0f, 0f, 1f);
@@ -39,7 +42,6 @@ namespace Clone2048
 
         public override void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
-            D2DRT.DrawText(label, tFormat, labelRect, labelSCBrush);
             if (isActive)
             {
                 D2DRT.DrawRectangle(valueBox, activeSCBrush);
@@ -48,7 +50,7 @@ namespace Clone2048
             {
                 D2DRT.DrawRectangle(valueBox, labelSCBrush);
             }
-            D2DRT.DrawText(value.ToString(), tFormat, valueBox, labelSCBrush);
+            D2DRT.DrawText(letter, tFormat, valueBox, labelSCBrush);
         }
     }
 }
