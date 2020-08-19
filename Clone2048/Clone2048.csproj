@@ -104,6 +104,7 @@
     <Compile Include="SDXMenuControls\SDXMenuLetterInput.cs" />
     <Compile Include="SDXMenuControls\SDXMenuIntegerBox.cs" />
     <Compile Include="SDXMenuControls\SDXMenuLabel.cs" />
+    <Compile Include="SDXMenuControls\SDXMenuToggle.cs" />
     <Compile Include="SDXMenuControls\SDXSceneFlow.cs" />
     <Compile Include="SettingsMenu.cs" />
     <Compile Include="StartMenu.cs" />

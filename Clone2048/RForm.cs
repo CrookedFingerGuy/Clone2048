@@ -195,6 +195,8 @@ namespace Clone2048
             {
                 DrawGameBoard(d2dRenderTarget);
                 d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
+                if(gsd.allowUndo)
+                    d2dRenderTarget.DrawText(gsd.undosRemaining.ToString(), scoreTextFormat, new RawRectangleF(20f, 120f, 300f, 100f), scoreColor);
             }
 
 
@@ -239,6 +241,8 @@ namespace Clone2048
                     if (bs.Value == 4)
                         gsd.score += 4;
                     moveSuccess = false;
+                    if(gsd.undosRemaining<5)
+                        gsd.undosRemaining++;
                 }
                 if (bs.Value != 0)
                 {
@@ -285,7 +289,11 @@ namespace Clone2048
                                 break;
                             case Key.Space:
                                 {
-                                    RestoreUndoState();
+                                    if (gsd.allowUndo && gsd.undoStored && gsd.undosRemaining > 0)
+                                    {
+                                        RestoreUndoState();
+                                        gsd.undosRemaining--;
+                                    }
                                     moveSuccess = false;
 
                                 }
@@ -332,7 +340,11 @@ namespace Clone2048
                         case GamepadButtonFlags.A:
                             {
                                 //Undo
-                                RestoreUndoState();
+                                if (gsd.allowUndo && gsd.undoStored && gsd.undosRemaining > 0)
+                                {
+                                    RestoreUndoState();
+                                    gsd.undosRemaining--;
+                                }
                                 moveSuccess = false;
                             }
                             break;
@@ -371,17 +383,24 @@ namespace Clone2048
 
         public void SaveUndoState()
         {
+            int[,] temp = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
             for (int i = 0; i < gridSize; i++)
                 for (int j = 0; j < gridSize; j++)
-                    gsd.lastTurnValues[i, j] = gsd.boardValues[i, j];
+                    temp[i, j] = gsd.boardValues[i, j];
+            gsd.lastTurnValues.Push(temp);
             gsd.oldScore = gsd.score;
+            gsd.undoStored = true;
         }
 
         public void RestoreUndoState()
         {
-            for (int i = 0; i < gridSize; i++)
-                for (int j = 0; j < gridSize; j++)
-                    gsd.boardValues[i, j] = gsd.lastTurnValues[i, j];
+            if (gsd.lastTurnValues.Count > 0)
+            {
+                int[,] temp = gsd.lastTurnValues.Pop();
+                for (int i = 0; i < gridSize; i++)
+                    for (int j = 0; j < gridSize; j++)
+                        gsd.boardValues[i, j] = temp[i, j];
+            }
             gsd.score = gsd.oldScore;
             bs.Value = 0;
         }

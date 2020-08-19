@@ -9,6 +9,7 @@ namespace Clone2048
     [Serializable]
     public class HighScores
     {
+        public List<HighScoreWithName> scores;
         public class HighScoreWithName:IComparable
         {
             public int score;
@@ -36,11 +37,9 @@ namespace Clone2048
                 else
                     return 0;
             }
-        }
+        }        
 
-        
 
-        public List<HighScoreWithName> scores;
         public HighScores()
         {
             scores = new List<HighScoreWithName>();

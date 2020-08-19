@@ -12,20 +12,28 @@ namespace Clone2048
     public class GameStateData
     {
         public int[,] boardValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
-        public int[,] lastTurnValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+        public Stack<int[,]> lastTurnValues;
         public int[,] testTurnValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         public int score;
         public int oldScore;
         public bool isGameOver;
         public bool isGameWon;
         public int gridSize;
+        public bool allowUndo;
+        public bool undoStored;
+        public int undosRemaining;
 
         public GameStateData()
         {
             score = 0;
             gridSize = 4;
+            undosRemaining = 0;
             isGameOver = false;
             isGameWon = false;
+            allowUndo = true;
+            undoStored = false;
+            lastTurnValues = new Stack<int[,]>();
+            //lastTurnValues.Push(new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } });
         }
 
         public bool CheckForRemainingMoves()
@@ -77,12 +85,13 @@ namespace Clone2048
 
         public void NewGame()
         {
-            boardValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
-            lastTurnValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
-
+            boardValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };            
+            lastTurnValues.Clear();
+            undosRemaining = 0;
             score = 0;
             isGameOver = false;
             isGameWon = false;
+            undoStored = false;
         }
 
         public bool ProcessMove(MoveDirection md)

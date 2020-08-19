@@ -71,7 +71,7 @@ namespace Clone2048
                         case 0:
                             {
                                 //this.isVisible = false;
-                                lgsd.NewGame();
+                                //lgsd.NewGame();
                                 return "start";
                             }
                             break;
