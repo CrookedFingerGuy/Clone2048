@@ -51,10 +51,12 @@ namespace Clone2048
         Stopwatch gameInputTimer;
         TextFormat pieceTextFormat;
         TextFormat pieceTextFormat4Digits;
-        RawRectangleF TestTextArea;
         Bitmap Background;
         SolidColorBrush boardColor;
         SolidColorBrush boardSpotColor;
+        SolidColorBrush boardValueColor;
+        List<SolidColorBrush> activePieceColors;
+        SolidColorBrush scoreColor;
         int screenWidth = 1280;
         int screenHeight = 720;
         int boardWidth = 500;
@@ -63,11 +65,8 @@ namespace Clone2048
         int topLeftY;
         RawRectangleF boardRect;
         GameStateData gsd;
-        BoardSpot bs;
         int gridSize;
         bool moveSuccess = true;
-        SolidColorBrush activePieceColor;
-        SolidColorBrush scoreColor;
         TextFormat scoreTextFormat;
         TextFormat viewHighScoresTF;
         StartMenu startMenu;
@@ -87,6 +86,8 @@ namespace Clone2048
             this.ClientSize = new System.Drawing.Size(screenWidth, screenHeight);
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RForm));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+
+            //SharpDX variable initialization
             desc = new SwapChainDescription()
             {
                 BufferCount = 1,
@@ -97,7 +98,6 @@ namespace Clone2048
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput
             };
-
             Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.BgraSupport, new SharpDX.Direct3D.FeatureLevel[] { SharpDX.Direct3D.FeatureLevel.Level_10_0 }, desc, out device, out swapChain);
             d2dFactory = new SharpDX.Direct2D1.Factory();
             factory = swapChain.GetParent<Factory>();
@@ -105,57 +105,66 @@ namespace Clone2048
             backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
             renderView = new RenderTargetView(device, backBuffer);
             surface = backBuffer.QueryInterface<Surface>();
-            d2dRenderTarget = new RenderTarget(d2dFactory, surface, new RenderTargetProperties(new SharpDX.Direct2D1.PixelFormat(Format.Unknown, AlphaMode.Premultiplied)));
+            d2dRenderTarget = new RenderTarget(d2dFactory,surface,new RenderTargetProperties(new SharpDX.Direct2D1.PixelFormat(Format.Unknown,AlphaMode.Premultiplied)));
             solidColorBrush = new SolidColorBrush(d2dRenderTarget, Color.White);
-            solidColorBrush.Color = Color.Purple;
             directInput = new DirectInput();
             keyboard = new Keyboard(directInput);
             keyboard.Properties.BufferSize = 128;
             keyboard.Acquire();
             keys = new KeyboardState();
             userInputProcessor = new UserInputProcessor();
-            TestTextArea = new SharpDX.Mathematics.Interop.RawRectangleF(10, 10, 400, 400);
             gameInputTimer = new Stopwatch();
             gameInputTimer.Start();
+            
+            //Colors            
+            boardColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0.9215686f, 0.4235294f, 0.07058824f, 1.0f));
+            boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0.1882353f, 0.2431373f, 0.2862745f, 1.0f));
+            boardValueColor = new SolidColorBrush(d2dRenderTarget, Color.Black);
+            activePieceColors = new List<SolidColorBrush>();
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.3960784f, 0.3960784f, 0.372549f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.7411765f, 0.5843138f, 0.4f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.9176471f, 0.6784314f, 0.3921569f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.972549f, 0.627451f, 0.1137255f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.9137255f, 0.7411765f, 0.2235294f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.427451f, 0.7843137f, 0.654902f, 1.0f)));
+            activePieceColors.Add(new SolidColorBrush(d2dRenderTarget, new RawColor4(0.6627451f, 0.7686275f, 0.3411765f, 1.0f)));
 
-            boardColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(1f, 0f, 0f, 1f));
-            boardSpotColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f, 0f, 0.2f, 1f));
-            activePieceColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(0f, 0.4f, 0f, 1f));
+            //Gameboard drawing initialization
             topLeftX = screenWidth / 2 - boardWidth / 2;
             topLeftY = screenHeight / 2 - boardHeight / 2;
-            boardRect = new RawRectangleF(topLeftX, topLeftY,
-                topLeftX + boardWidth, topLeftY + boardHeight);
-
-            gsd= new GameStateData();
-            bs = new BoardSpot(0.1);
-            gridSize = 4;
-            gsd.gridSize = 4;
-            bs.gridSize = 4;
-            bs.GenerateANewPiece(gsd);
-            if (bs.Value == 4)
-                gsd.score += 4;
-            moveSuccess = false;
+            boardRect = new RawRectangleF(topLeftX, topLeftY,topLeftX + boardWidth, topLeftY + boardHeight);
             pieceTextFormat = new SharpDX.DirectWrite.TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
             pieceTextFormat.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
             pieceTextFormat.ParagraphAlignment = ParagraphAlignment.Center;
             pieceTextFormat4Digits = new SharpDX.DirectWrite.TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 24);
             pieceTextFormat4Digits.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
             pieceTextFormat4Digits.ParagraphAlignment = ParagraphAlignment.Center;
-            scoreColor = new SolidColorBrush(d2dRenderTarget,new RawColor4(1f, 1f, 1f, 1f));
+            scoreColor = new SolidColorBrush(d2dRenderTarget, new RawColor4(1f, 1f, 1f, 1f));
             scoreTextFormat = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
 
+
+            //Game variable initialization
+            gsd = new GameStateData();
+            gridSize = 4;
+            gsd.gridSize = 4;
+            gsd.bs.gridSize = 4;
+            gsd.bs.GenerateANewPiece(gsd.boardValues);
+            if (gsd.bs.Value == 4)
+                gsd.score += 4;
+            moveSuccess = false;
+
+
+            //Menu Initialization and font setup
             TextFormat startMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
-            startMenu = new StartMenu(d2dRenderTarget,startMenuText,screenWidth,screenHeight,gsd,"start");
-  
+            startMenu = new StartMenu(d2dRenderTarget,startMenuText,screenWidth,screenHeight,"start");  
             TextFormat gameOverMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 72);
             gameOverScreen =new GameOverScreen(d2dRenderTarget, gameOverMenuText, screenWidth, screenHeight, gsd,"gameover");
-
             TextFormat settingsMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
-            settingsMenu = new SettingsMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, bs, "settings");
-
+            settingsMenu = new SettingsMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "settings");
             TextFormat sureMenuText = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 36);
-            areYouSureBox = new AreYouSureBox(d2dRenderTarget, sureMenuText, screenWidth, screenHeight, gsd, bs, "areyousure");
+            areYouSureBox = new AreYouSureBox(d2dRenderTarget, sureMenuText, screenWidth, screenHeight, "areyousure");
 
+            //Load high scores and initialize the high score related menus
             WorkingPath = Directory.GetCurrentDirectory();
             if (File.Exists(WorkingPath + @"\HighScores.sco"))
             {
@@ -165,13 +174,13 @@ namespace Clone2048
             {
                 highs = new HighScores();
             }
-            madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore",highs);
-
             viewHighScoresTF = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 30);
             viewHighScoresTF.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
             viewHighScoresTF.TextAlignment = SharpDX.DirectWrite.TextAlignment.Leading;
             viewHighScores = new ViewHighScores(d2dRenderTarget, viewHighScoresTF, screenWidth, screenHeight,highs,WorkingPath , "viewhighscores");
+            madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore", highs);
 
+            //Link all the menus together
             sceneFlow = new SDXSceneFlow();
             sceneFlow.menuList.Add(startMenu);
             sceneFlow.menuList.Add(gameOverScreen);
@@ -181,7 +190,6 @@ namespace Clone2048
             sceneFlow.menuList.Add(madeHighScoreMenu);
             currentMenu = "start";
             sceneFlow.activeMenu = sceneFlow.NextMenu(currentMenu);
-
         }
 
         public void rLoop()
@@ -191,7 +199,7 @@ namespace Clone2048
 
 
             gridSize = gsd.gridSize;
-            bs.gridSize = gridSize;
+            gsd.bs.gridSize = gridSize;
             sceneFlow.NextMenu(currentMenu);
             if(currentMenu!="")
                 sceneFlow.menuList[sceneFlow.activeMenu].ShowMenu(d2dRenderTarget);
@@ -236,16 +244,16 @@ namespace Clone2048
             {
                 if (moveSuccess)
                 {
-                    bs.GenerateANewPiece(gsd);
-                    if (bs.Value == 4)
+                    gsd.bs.GenerateANewPiece(gsd.boardValues);
+                    if (gsd.bs.Value == 4)
                         gsd.score += 4;
                     moveSuccess = false;
                     if(gsd.undosRemaining<5)
                         gsd.undosRemaining++;
                 }
-                if (bs.Value != 0)
+                if (gsd.bs.Value != 0)
                 {
-                    gsd.boardValues[bs.X, bs.Y] = bs.Value;
+                    gsd.boardValues[gsd.bs.X, gsd.bs.Y] = gsd.bs.Value;
                 }
                 DrawGameBoard(d2dRenderTarget);
                 gsd.isGameOver = !gsd.CheckForRemainingMoves();
@@ -373,7 +381,6 @@ namespace Clone2048
                     gameOverScreen.finalScore = gsd.score;
                     currentMenu = "gameover";
                 }
-                gsd.NewGame();
             }                        
         }
 
@@ -398,12 +405,17 @@ namespace Clone2048
                         gsd.boardValues[i, j] = temp[i, j];
             }
             gsd.score = gsd.oldScore;
-            bs.Value = 0;
+            gsd.bs.Value = 0;
         }
 
         public void DrawGameBoard(RenderTarget D2DRT)
         {
-            D2DRT.FillRectangle(boardRect,boardColor);
+            //D2DRT.FillRectangle(boardRect,boardColor);
+            RoundedRectangle rBoardRect = new RoundedRectangle();
+            rBoardRect.Rect = boardRect;
+            rBoardRect.RadiusX = 15;
+            rBoardRect.RadiusY = 15;
+            D2DRT.FillRoundedRectangle(rBoardRect, boardColor);
             for(int x=0;x< gridSize; x++)
             {
                 for(int y=0; y< gridSize; y++)
@@ -416,62 +428,23 @@ namespace Clone2048
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
                         rSpot.RadiusY = 15;
-                        D2DRT.FillRoundedRectangle(rSpot, activePieceColor);
+                        D2DRT.FillRoundedRectangle(rSpot, boardSpotColor);
                     }
                     else
                     {
                         RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / gridSize) * x + 10, topLeftY + (boardHeight / gridSize) * y + 10,
                             topLeftX + (boardWidth / gridSize) * x + (boardWidth / gridSize - 10), topLeftY + (boardHeight / gridSize * y) + (boardHeight / gridSize - 10));
-                        boardSpotColor.Color = new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f);
+                        //boardValueColor.Color = new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f);
                         RoundedRectangle rSpot = new RoundedRectangle();
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
                         rSpot.RadiusY = 15;
-                        D2DRT.FillRoundedRectangle(rSpot, boardSpotColor);
-                        if(gsd.boardValues[x,y].ToString().Length< gridSize)
-                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat, spot, boardColor);
+                        D2DRT.FillRoundedRectangle(rSpot, activePieceColors[(int)(Math.Log(gsd.boardValues[x, y], 2)%activePieceColors.Count)]);
+                        if (gsd.boardValues[x, y].ToString().Length < gridSize)
+                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat, spot, boardValueColor);
                         else
-                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat4Digits, spot, boardColor);
+                            D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat4Digits, spot, boardValueColor);                        
                     }
-                }
-            }
-        }
-
-        Bitmap LoadBackground(RenderTarget renderTarget, string file)
-        {
-            using (var bitmap = (System.Drawing.Bitmap)System.Drawing.Image.FromFile(file))
-            {
-                var sourceArea = new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                var bitmapProperties = new BitmapProperties(new SharpDX.Direct2D1.PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Premultiplied));
-                var size = new Size2(bitmap.Width, bitmap.Height);
-
-                // Transform pixels from BGRA to RGBA
-                int stride = bitmap.Width * sizeof(int);
-                using (var tempStream = new DataStream(bitmap.Height * stride, true, true))
-                {
-                    // Lock System.Drawing.Bitmap
-                    var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
-
-                    // Convert all pixels 
-                    for (int y = 0; y < bitmap.Height; y++)
-                    {
-                        int offset = bitmapData.Stride * y;
-                        for (int x = 0; x < bitmap.Width; x++)
-                        {
-                            // Not optimized 
-                            byte B = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte G = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte R = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte A = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            int rgba = R | (G << 8) | (B << 16) | (A << 24);
-                            tempStream.Write(rgba);
-                        }
-
-                    }
-                    bitmap.UnlockBits(bitmapData);
-                    tempStream.Position = 0;
-
-                    return new Bitmap(renderTarget, size, tempStream, stride, bitmapProperties);
                 }
             }
         }

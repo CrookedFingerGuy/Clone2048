@@ -17,10 +17,9 @@ namespace Clone2048
     {
         BoardSpot lbs;
         GameStateData lgsd;
-        public SettingsMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, BoardSpot bs, string name) : base(D2DRT, tf, width, height,name)
+        public SettingsMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, string name) : base(D2DRT, tf, width, height,name)
         {
             lgsd = gsd;
-            lbs = bs;
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;
             int menuYOffset = 200;
@@ -43,8 +42,9 @@ namespace Clone2048
             }
         }
 
-        public override string HandleInputs(State controllerState, GameStateData lgsd, int oldPacketNumber, KeyboardUpdate[] keyData)
+        public override string HandleInputs(State controllerState, GameStateData gsd, int oldPacketNumber, KeyboardUpdate[] keyData)
         {
+            lgsd = gsd;
             foreach (var state in keyData)
             {
                 if (state.IsPressed)
@@ -109,8 +109,6 @@ namespace Clone2048
                                     case 2:
                                         {
                                             lgsd.gridSize = menuControls[0].value;
-                                            lbs.gridSize = menuControls[0].value;
-                                            //lgsd.NewGame();
                                             return "start";
                                         }
                                         break;

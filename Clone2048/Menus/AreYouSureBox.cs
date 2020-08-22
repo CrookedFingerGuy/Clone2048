@@ -14,7 +14,7 @@ namespace Clone2048
 {
     public class AreYouSureBox :SDXMenu
     {
-        public AreYouSureBox(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, BoardSpot bs, string name):base(D2DRT, tf, width, height, name)
+        public AreYouSureBox(RenderTarget D2DRT, TextFormat tf, int width, int height, string name):base(D2DRT, tf, width, height, name)
         {
             menuControls = new List<SDXMenuControl>();
             int controlYSpacing = 60;

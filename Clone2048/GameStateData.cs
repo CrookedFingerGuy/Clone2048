@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace Clone2048
 {
     public enum MoveDirection { LEFT, RIGHT, UP, DOWN };
-
     public class GameStateData
     {
         public int[,] boardValues = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
@@ -22,6 +21,7 @@ namespace Clone2048
         public bool allowUndo;
         public bool undoStored;
         public int undosRemaining;
+        public BoardSpot bs;
 
         public GameStateData()
         {
@@ -33,6 +33,7 @@ namespace Clone2048
             allowUndo = true;
             undoStored = false;
             lastTurnValues = new Stack<int[,]>();
+            bs = new BoardSpot(0.1f);
         }
 
         public bool CheckForRemainingMoves()
@@ -84,13 +85,16 @@ namespace Clone2048
 
         public void NewGame()
         {
-            boardValues = new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };            
+            for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                    boardValues[i,j] = 0;
             lastTurnValues.Clear();
             undosRemaining = 0;
             score = 0;
             isGameOver = false;
             isGameWon = false;
             undoStored = false;
+            bs.GenerateANewPiece(boardValues);
         }
 
         public bool ProcessMove(MoveDirection md)
@@ -276,6 +280,67 @@ namespace Clone2048
                     break;
             }
             return moveMade;
+        }
+
+        public class BoardSpot
+        {
+            public double percentToGenerateA4;
+            public int X;
+            public int Y;
+            public int Value;
+            public int gridSize;
+
+            public BoardSpot(double p)
+            {
+                percentToGenerateA4 = p;
+                Value = 0;
+                gridSize = 4;
+            }
+
+            public void GenerateANewPiece(int[,] lboardValues)
+            {
+                Random rand = new Random();
+
+                if (rand.NextDouble() > percentToGenerateA4)
+                    this.Value = 2;
+                else
+                    this.Value = 4;
+
+                int blank = 0;
+
+                for (int i = 0; i < gridSize; i++)
+                {
+                    for (int j = 0; j < gridSize; j++)
+                    {
+                        if (lboardValues[i, j] == 0)
+                            blank++;
+                    }
+                }
+
+                if (blank != 0)
+                {
+                    int rPos = rand.Next(1, blank);
+                    int counter = 0; ;
+                    for (int i = 0; i < gridSize; i++)
+                    {
+                        for (int j = 0; j < gridSize; j++)
+                        {
+                            if (lboardValues[i, j] == 0)
+                            {
+                                counter++;
+                                if (counter == rPos)
+                                {
+                                    this.X = i;
+                                    this.Y = j;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                else
+                    this.Value = 0;
+            }
         }
     }
 }
