@@ -82,11 +82,35 @@ namespace Clone2048
 
         }
 
+        public void SaveUndoState()
+        {
+            int[,] temp = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
+                    temp[i, j] = boardValues[i, j];
+            lastTurnValues.Push(temp);
+            oldScore = score;
+            undoStored = true;
+        }
+
+        public void RestoreUndoState()
+        {
+            if (lastTurnValues.Count > 0)
+            {
+                int[,] temp = lastTurnValues.Pop();
+                for (int i = 0; i < gridSize; i++)
+                    for (int j = 0; j < gridSize; j++)
+                        boardValues[i, j] = temp[i, j];
+            }
+            score = oldScore;
+            bs.Value = 0;
+        }
+
 
         public void NewGame()
         {
-            for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
+            for (int i = 0; i < gridSize; i++)
+                for (int j = 0; j < gridSize; j++)
                     boardValues[i,j] = 0;
             lastTurnValues.Clear();
             undosRemaining = 0;
@@ -95,6 +119,7 @@ namespace Clone2048
             isGameWon = false;
             undoStored = false;
             bs.GenerateANewPiece(boardValues);
+            bs.gridSize = gridSize;
         }
 
         public bool ProcessMove(MoveDirection md)

@@ -15,7 +15,6 @@ namespace Clone2048
 {
     public class SettingsMenu : SDXMenu
     {
-        BoardSpot lbs;
         GameStateData lgsd;
         public SettingsMenu(RenderTarget D2DRT, TextFormat tf, int width, int height, GameStateData gsd, string name) : base(D2DRT, tf, width, height,name)
         {
@@ -30,9 +29,7 @@ namespace Clone2048
                 menuWidth / 2 - 200, menuHeight / 2 - menuYOffset + controlYSpacing * menuControls.Count, 400, 50));
             activeControl = 0;
             menuControls[activeControl].isActive = true;
-
         }
-
 
         public override void ShowMenu(RenderTarget D2DRT)
         {
@@ -181,7 +178,7 @@ namespace Clone2048
                         case 2:
                             {
                                 lgsd.gridSize = menuControls[0].value;
-                                lbs.gridSize= menuControls[0].value;
+                                lgsd.bs.gridSize = menuControls[0].value;
                                 //lgsd.NewGame();
                                 return "start";
                             }

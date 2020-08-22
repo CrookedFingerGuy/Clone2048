@@ -49,26 +49,27 @@ namespace Clone2048
 
         UserInputProcessor userInputProcessor;
         Stopwatch gameInputTimer;
-        TextFormat pieceTextFormat;
-        TextFormat pieceTextFormat4Digits;
-        Bitmap Background;
-        SolidColorBrush boardColor;
-        SolidColorBrush boardSpotColor;
-        SolidColorBrush boardValueColor;
-        List<SolidColorBrush> activePieceColors;
-        SolidColorBrush scoreColor;
         int screenWidth = 1280;
         int screenHeight = 720;
         int boardWidth = 500;
         int boardHeight = 500;
         int topLeftX;
         int topLeftY;
+
+        TextFormat pieceTextFormat;
+        TextFormat pieceTextFormat4Digits;
+        TextFormat scoreTextFormat;
+        TextFormat viewHighScoresTF;
+        SolidColorBrush boardColor;
+        SolidColorBrush boardSpotColor;
+        SolidColorBrush boardValueColor;
+        List<SolidColorBrush> activePieceColors;
+        SolidColorBrush scoreColor;
         RawRectangleF boardRect;
         GameStateData gsd;
         int gridSize;
         bool moveSuccess = true;
-        TextFormat scoreTextFormat;
-        TextFormat viewHighScoresTF;
+
         StartMenu startMenu;
         GameOverScreen gameOverScreen;
         MadeHighScoreMenu madeHighScoreMenu;
@@ -77,6 +78,7 @@ namespace Clone2048
         ViewHighScores viewHighScores;
         SDXSceneFlow sceneFlow;
         string currentMenu;
+
         HighScores highs;
         string WorkingPath;
 
@@ -146,8 +148,8 @@ namespace Clone2048
             //Game variable initialization
             gsd = new GameStateData();
             gridSize = 4;
-            gsd.gridSize = 4;
-            gsd.bs.gridSize = 4;
+            gsd.gridSize = gridSize;
+            gsd.bs.gridSize = gridSize;
             gsd.bs.GenerateANewPiece(gsd.boardValues);
             if (gsd.bs.Value == 4)
                 gsd.score += 4;
@@ -200,24 +202,14 @@ namespace Clone2048
 
             gridSize = gsd.gridSize;
             gsd.bs.gridSize = gridSize;
+
+            //If currentMenu is "" then the game shown and has control of the input.
             sceneFlow.NextMenu(currentMenu);
             if(currentMenu!="")
                 sceneFlow.menuList[sceneFlow.activeMenu].ShowMenu(d2dRenderTarget);
             else
             {
                 DrawGameBoard(d2dRenderTarget);
-                d2dRenderTarget.DrawText("Score:", scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
-                d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 56f, 300f, 100f), scoreColor);
-                if (gsd.allowUndo)
-                {
-                    d2dRenderTarget.DrawText("Undos:", scoreTextFormat, new RawRectangleF(20f, 118f, 300f, 140f), scoreColor);
-                    d2dRenderTarget.DrawText(gsd.undosRemaining.ToString(), scoreTextFormat, new RawRectangleF(20f, 154f, 300f, 200f), scoreColor);
-                    d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 200f), scoreColor, 4f);
-                }
-                else
-                {
-                    d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 102f), scoreColor, 4f);
-                }
             }
 
             if (gameInputTimer.ElapsedMilliseconds >= 25)
@@ -266,25 +258,25 @@ namespace Clone2048
                         {
                             case Key.Left:
                                 {
-                                    SaveUndoState();
+                                    gsd.SaveUndoState();
                                     moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
                                 }
                                 break;
                             case Key.Right:
                                 {
-                                    SaveUndoState();
+                                    gsd.SaveUndoState();
                                     moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
                                 }
                                 break;
                             case Key.Up:
                                 {
-                                    SaveUndoState();
+                                    gsd.SaveUndoState();
                                     moveSuccess = gsd.ProcessMove(MoveDirection.UP);
                                 }
                                 break;
                             case Key.Down:
                                 {
-                                    SaveUndoState();
+                                    gsd.SaveUndoState();
                                     moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
                                 }
                                 break;
@@ -297,7 +289,7 @@ namespace Clone2048
                                 {
                                     if (gsd.allowUndo && gsd.undoStored && gsd.undosRemaining > 0)
                                     {
-                                        RestoreUndoState();
+                                        gsd.RestoreUndoState();
                                         gsd.undosRemaining--;
                                     }
                                     moveSuccess = false;
@@ -314,25 +306,25 @@ namespace Clone2048
                     {
                         case GamepadButtonFlags.DPadLeft:
                             {
-                                SaveUndoState();
+                                gsd.SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.LEFT);
                             }
                             break;
                         case GamepadButtonFlags.DPadRight:
                             {
-                                SaveUndoState();
+                                gsd.SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.RIGHT);
                             }
                             break;
                         case GamepadButtonFlags.DPadUp:
                             {
-                                SaveUndoState();
+                                gsd.SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.UP);
                             }
                             break;
                         case GamepadButtonFlags.DPadDown:
                             {
-                                SaveUndoState();
+                                gsd.SaveUndoState();
                                 moveSuccess = gsd.ProcessMove(MoveDirection.DOWN);
                             }
                             break;
@@ -346,7 +338,7 @@ namespace Clone2048
                                 //Undo
                                 if (gsd.allowUndo && gsd.undoStored && gsd.undosRemaining > 0)
                                 {
-                                    RestoreUndoState();
+                                    gsd.RestoreUndoState();
                                     gsd.undosRemaining--;
                                 }
                                 moveSuccess = false;
@@ -384,33 +376,8 @@ namespace Clone2048
             }                        
         }
 
-        public void SaveUndoState()
-        {
-            int[,] temp = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
-            for (int i = 0; i < gridSize; i++)
-                for (int j = 0; j < gridSize; j++)
-                    temp[i, j] = gsd.boardValues[i, j];
-            gsd.lastTurnValues.Push(temp);
-            gsd.oldScore = gsd.score;
-            gsd.undoStored = true;
-        }
-
-        public void RestoreUndoState()
-        {
-            if (gsd.lastTurnValues.Count > 0)
-            {
-                int[,] temp = gsd.lastTurnValues.Pop();
-                for (int i = 0; i < gridSize; i++)
-                    for (int j = 0; j < gridSize; j++)
-                        gsd.boardValues[i, j] = temp[i, j];
-            }
-            gsd.score = gsd.oldScore;
-            gsd.bs.Value = 0;
-        }
-
         public void DrawGameBoard(RenderTarget D2DRT)
         {
-            //D2DRT.FillRectangle(boardRect,boardColor);
             RoundedRectangle rBoardRect = new RoundedRectangle();
             rBoardRect.Rect = boardRect;
             rBoardRect.RadiusX = 15;
@@ -434,7 +401,6 @@ namespace Clone2048
                     {
                         RawRectangleF spot = new RawRectangleF(topLeftX + (boardWidth / gridSize) * x + 10, topLeftY + (boardHeight / gridSize) * y + 10,
                             topLeftX + (boardWidth / gridSize) * x + (boardWidth / gridSize - 10), topLeftY + (boardHeight / gridSize * y) + (boardHeight / gridSize - 10));
-                        //boardValueColor.Color = new RawColor4(0f,0f, (float)(Math.Log(gsd.boardValues[x,y],2)/16+0.2),1f);
                         RoundedRectangle rSpot = new RoundedRectangle();
                         rSpot.Rect = spot;
                         rSpot.RadiusX = 15;
@@ -446,6 +412,18 @@ namespace Clone2048
                             D2DRT.DrawText(gsd.boardValues[x, y].ToString(), pieceTextFormat4Digits, spot, boardValueColor);                        
                     }
                 }
+            }
+            d2dRenderTarget.DrawText("Score:", scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
+            d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 56f, 300f, 100f), scoreColor);
+            if (gsd.allowUndo)
+            {
+                d2dRenderTarget.DrawText("Undos:", scoreTextFormat, new RawRectangleF(20f, 118f, 300f, 140f), scoreColor);
+                d2dRenderTarget.DrawText(gsd.undosRemaining.ToString(), scoreTextFormat, new RawRectangleF(20f, 154f, 300f, 200f), scoreColor);
+                d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 200f), scoreColor, 4f);
+            }
+            else
+            {
+                d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 102f), scoreColor, 4f);
             }
         }
 
