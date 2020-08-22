@@ -30,6 +30,7 @@ namespace Clone2048
 {
     public class RForm : RenderForm
     {
+        
         SwapChainDescription desc;
         Device device;
         SwapChain swapChain;
@@ -54,14 +55,13 @@ namespace Clone2048
         Bitmap Background;
         SolidColorBrush boardColor;
         SolidColorBrush boardSpotColor;
-        int screenWidth = 1024;
-        int screenHeight = 768;
+        int screenWidth = 1280;
+        int screenHeight = 720;
         int boardWidth = 500;
         int boardHeight = 500;
         int topLeftX;
         int topLeftY;
         RawRectangleF boardRect;
-        Board b;
         GameStateData gsd;
         BoardSpot bs;
         int gridSize;
@@ -69,6 +69,7 @@ namespace Clone2048
         SolidColorBrush activePieceColor;
         SolidColorBrush scoreColor;
         TextFormat scoreTextFormat;
+        TextFormat viewHighScoresTF;
         StartMenu startMenu;
         GameOverScreen gameOverScreen;
         MadeHighScoreMenu madeHighScoreMenu;
@@ -84,7 +85,8 @@ namespace Clone2048
         public RForm(string text) : base(text)
         {
             this.ClientSize = new System.Drawing.Size(screenWidth, screenHeight);
-
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RForm));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             desc = new SwapChainDescription()
             {
                 BufferCount = 1,
@@ -125,7 +127,6 @@ namespace Clone2048
                 topLeftX + boardWidth, topLeftY + boardHeight);
 
             gsd= new GameStateData();
-            //b = new Board();
             bs = new BoardSpot(0.1);
             gridSize = 4;
             gsd.gridSize = 4;
@@ -164,10 +165,12 @@ namespace Clone2048
             {
                 highs = new HighScores();
             }
-
             madeHighScoreMenu = new MadeHighScoreMenu(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight, gsd, "madehighscore",highs);
 
-            viewHighScores = new ViewHighScores(d2dRenderTarget, settingsMenuText, screenWidth, screenHeight,highs,WorkingPath , "viewhighscores");
+            viewHighScoresTF = new TextFormat(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Isolated), "Gill Sans", FontWeight.UltraBold, FontStyle.Normal, 30);
+            viewHighScoresTF.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
+            viewHighScoresTF.TextAlignment = SharpDX.DirectWrite.TextAlignment.Leading;
+            viewHighScores = new ViewHighScores(d2dRenderTarget, viewHighScoresTF, screenWidth, screenHeight,highs,WorkingPath , "viewhighscores");
 
             sceneFlow = new SDXSceneFlow();
             sceneFlow.menuList.Add(startMenu);
@@ -188,17 +191,26 @@ namespace Clone2048
 
 
             gridSize = gsd.gridSize;
+            bs.gridSize = gridSize;
             sceneFlow.NextMenu(currentMenu);
             if(currentMenu!="")
                 sceneFlow.menuList[sceneFlow.activeMenu].ShowMenu(d2dRenderTarget);
             else
             {
                 DrawGameBoard(d2dRenderTarget);
-                d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
-                if(gsd.allowUndo)
-                    d2dRenderTarget.DrawText(gsd.undosRemaining.ToString(), scoreTextFormat, new RawRectangleF(20f, 120f, 300f, 100f), scoreColor);
+                d2dRenderTarget.DrawText("Score:", scoreTextFormat, new RawRectangleF(20f, 20f, 300f, 100f), scoreColor);
+                d2dRenderTarget.DrawText(gsd.score.ToString(), scoreTextFormat, new RawRectangleF(20f, 56f, 300f, 100f), scoreColor);
+                if (gsd.allowUndo)
+                {
+                    d2dRenderTarget.DrawText("Undos:", scoreTextFormat, new RawRectangleF(20f, 118f, 300f, 140f), scoreColor);
+                    d2dRenderTarget.DrawText(gsd.undosRemaining.ToString(), scoreTextFormat, new RawRectangleF(20f, 154f, 300f, 200f), scoreColor);
+                    d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 200f), scoreColor, 4f);
+                }
+                else
+                {
+                    d2dRenderTarget.DrawRectangle(new RawRectangleF(10f, 10f, 230f, 102f), scoreColor, 4f);
+                }
             }
-
 
             if (gameInputTimer.ElapsedMilliseconds >= 25)
             {
@@ -209,26 +221,13 @@ namespace Clone2048
                 gameInputTimer.Restart();
 
                 if (currentMenu != "")
-                    currentMenu = sceneFlow.menuList[sceneFlow.activeMenu].HandleInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
+                    currentMenu = sceneFlow.menuList[sceneFlow.activeMenu].HandleInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber,keyData);
                 else
                     HandleGameInputs();
-                //if (gameOverScreen.isVisible)
-                //{
-                //    gameOverScreen.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
-                //}
-                //else if (startMenu.isVisible)
-                //{
-                //    startMenu.HandleGamePadInputs(gamePadState, gsd, userInputProcessor.oldPacketNumber);
-                //}
-                //else
-                //{
-                //    HandleGameInputs();
-                //}
             }
 
             d2dRenderTarget.EndDraw();
             swapChain.Present(0, PresentFlags.None);
-            //Thread.Sleep(100);
         }
 
         public void HandleGameInputs()
@@ -284,7 +283,6 @@ namespace Clone2048
                             case Key.Escape:
                                 {
                                     currentMenu = "areyousure";
-                                    //startMenu.isVisible = true;
                                 }
                                 break;
                             case Key.Space:
@@ -332,8 +330,6 @@ namespace Clone2048
                             break;
                         case GamepadButtonFlags.Start:
                             {
-                                //gsd.isGameOver = true;
-                                //startMenu.isVisible = true;
                                 currentMenu = "areyousure";
                             }
                             break;
@@ -495,6 +491,20 @@ namespace Clone2048
             factory.Dispose();
         }
 
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RForm));
+            this.SuspendLayout();
+            // 
+            // RForm
+            // 
+            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Name = "RForm";
+            this.Text = "2048";
+            this.ResumeLayout(false);
+
+        }
     }
 
 }

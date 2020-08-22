@@ -11,7 +11,7 @@ namespace Clone2048
         RawColor4 labelColor;
         SolidColorBrush labelSCBrush;
         RawRectangleF labelRect;
-        public TextFormat tFormat;
+        TextFormat tFormat;
 
         public SDXMenuLabel(RenderTarget D2DRT, TextFormat tf, string l, int x,int y,int width,int height):base(x,y,width,height)
         {
@@ -25,6 +25,7 @@ namespace Clone2048
         public override void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
             D2DRT.DrawText(label, tFormat, labelRect, labelSCBrush);
+            //D2DRT.DrawRectangle(labelRect, labelSCBrush);
         }
 
     }

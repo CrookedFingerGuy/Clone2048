@@ -33,7 +33,6 @@ namespace Clone2048
             allowUndo = true;
             undoStored = false;
             lastTurnValues = new Stack<int[,]>();
-            //lastTurnValues.Push(new int[,] { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } });
         }
 
         public bool CheckForRemainingMoves()

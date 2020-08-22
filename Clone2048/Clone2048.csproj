@@ -84,11 +84,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AreYouSureBox.cs" />
-    <Compile Include="Board.cs" />
+    <Compile Include="Menus\AreYouSureBox.cs" />
     <Compile Include="BoardSpot.cs" />
     <Compile Include="FileUtils.cs" />
-    <Compile Include="GameOverScreen.cs" />
+    <Compile Include="Menus\GameOverScreen.cs" />
     <Compile Include="GameStateData.cs" />
     <Compile Include="HighScores.cs" />
     <Compile Include="Program.cs" />
@@ -96,7 +95,7 @@
     <Compile Include="RForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MadeHighScoreMenu.cs" />
+    <Compile Include="Menus\MadeHighScoreMenu.cs" />
     <Compile Include="SDXMenuControls\SDXMenu.cs" />
     <Compile Include="SDXMenuControls\SDXMenuButton.cs" />
     <Compile Include="SDXMenuControls\SDXMenuControl.cs" />
@@ -104,16 +103,22 @@
     <Compile Include="SDXMenuControls\SDXMenuLetterInput.cs" />
     <Compile Include="SDXMenuControls\SDXMenuIntegerBox.cs" />
     <Compile Include="SDXMenuControls\SDXMenuLabel.cs" />
+    <Compile Include="SDXMenuControls\SDXMenuTextInput.cs" />
     <Compile Include="SDXMenuControls\SDXMenuToggle.cs" />
     <Compile Include="SDXMenuControls\SDXSceneFlow.cs" />
-    <Compile Include="SettingsMenu.cs" />
-    <Compile Include="StartMenu.cs" />
+    <Compile Include="Menus\SettingsMenu.cs" />
+    <Compile Include="Menus\StartMenu.cs" />
     <Compile Include="UserInputProccessor.cs" />
-    <Compile Include="ViewHighScores.cs" />
+    <Compile Include="Menus\ViewHighScores.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="RForm.resx">
+      <DependentUpon>RForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

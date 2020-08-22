@@ -40,9 +40,9 @@ namespace Clone2048
             isSelectable = true;
         }
 
-        public override void DrawControl(RenderTarget D2DRT, TextFormat tFormat)
+        public override void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
-            tFormat.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
+            //tFormat.TextAlignment = SharpDX.DirectWrite.TextAlignment.Center;
             D2DRT.DrawText(label, tFormat, labelRect, labelSCBrush);
             if (isActive)
             {
@@ -51,7 +51,8 @@ namespace Clone2048
             else
             {
                 D2DRT.DrawRectangle(labelRect, labelSCBrush);
-            }            
+            }
+            //tFormat.TextAlignment = SharpDX.DirectWrite.TextAlignment.Leading;
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using SharpDX.Direct2D1;
 using SharpDX.Windows;
 
 namespace Clone2048
@@ -12,7 +14,7 @@ namespace Clone2048
         [STAThread]
         static void Main()
         {
-            RForm rForm = new RForm("Sharp DX Template");
+            RForm rForm = new RForm("CrookedFingerGuy's 2048");            
 
             RenderLoop.Run(rForm, () => rForm.rLoop());
 

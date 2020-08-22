@@ -21,7 +21,7 @@ namespace Clone2048
             height = h;
         }
 
-        public virtual void DrawControl(RenderTarget D2DRT, TextFormat tFormat)
+        public virtual void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
         }
     }

@@ -21,7 +21,7 @@ namespace Clone2048
             isActive = false;
         }
 
-        public override void DrawControl(RenderTarget D2DRT, TextFormat tFormat)
+        public override void DrawControl(RenderTarget D2DRT, TextFormat tf)
         {
             D2DRT.DrawBitmap(image,imageLocation, 1.0f, BitmapInterpolationMode.Linear);
         }
